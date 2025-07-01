@@ -1,0 +1,32 @@
+/* App.css */
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
+    "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow: hidden; /* メインウィンドウのスクロールバーを無効化 */
+}
+
+/* ResizablePanel.css */
+.resizable-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.resizer-handle {
+  width: 10px;
+  cursor: col-resize;
+  background-color: transparent;
+  z-index: 10;
+  -webkit-user-select: none; /* Safari */
+  -moz-user-select: none; /* Firefox */
+  -ms-user-select: none; /* IE10+/Edge */
+  user-select: none;
+}
+
+.resizing {
+  cursor: col-resize;
+}
