@@ -91,7 +91,6 @@ const theme = createTheme({
 });
 
 function App() {
-  console.log('App');
   // 現在選択されているタブのインデックス
   const [tabIndex, setTabIndex] = useState(0);
 

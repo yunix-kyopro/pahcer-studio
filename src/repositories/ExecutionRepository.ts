@@ -100,7 +100,7 @@ export class ExecutionRepository implements IExecutionRepository {
       if (parsed.success) {
         execution = parsed.data;
       } else {
-        console.warn(`execution_info.json for ${id} is invalid, ignoring.`);
+        console.error(`execution_info.json for ${id} is invalid, ignoring.`);
       }
     }
 
@@ -185,7 +185,7 @@ export class ExecutionRepository implements IExecutionRepository {
               executions.push(execution);
             }
           } catch (error: unknown) {
-            console.warn(`Could not load execution from dir ${id}:`, error);
+            console.error(`Could not load execution from dir ${id}:`, error);
           }
         }
       }
@@ -211,7 +211,7 @@ export class ExecutionRepository implements IExecutionRepository {
     if (!execution) {
       // ステータス更新時に実行が見つからない場合、警告を出すか、何もしない。
       // ここでは何もしないことを選択するが、プロジェクトによってはエラーを投げるべきかもしれない。
-      console.warn(`Execution ${id} not found for status update, skipping.`);
+      console.error(`Execution ${id} not found for status update, skipping.`);
       return;
     }
     execution.status = status;
