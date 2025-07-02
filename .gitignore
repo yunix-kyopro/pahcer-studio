@@ -16,4 +16,8 @@ __pycache__/
 # 分析結果
 analysis_data/
 
-data
+# data
+data/
+
+# visualizer
+public/visualizer/

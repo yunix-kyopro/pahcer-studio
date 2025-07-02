@@ -1,7 +1,7 @@
 {
-  "name": "pacher-electron",
-  "version": "1.0.0",
-  "description": "最小限のElectronデスクトップアプリ",
+  "name": "pacher-studio",
+  "version": "0.1.0",
+  "description": "pacherでAHCのテストケース実行を支援するためのデスクトップアプリです",
   "main": "dist/main.js",
   "scripts": {
     "build": "tsc && vite build",

@@ -66,24 +66,5 @@
   <body>
     <div class="container">
       <h1>🚀 Pacher Electron App</h1>
-      <p>TypeScriptで作られた最小限のElectronアプリです</p>
-      <button onclick="showMessage()">クリックしてみて！</button>
-      <div class="info">
-        <p>Node.js: <span id="node-version"></span></p>
-        <p>Electron: <span id="electron-version"></span></p>
-      </div>
     </div>
-
-    <script>
-      // バージョン情報を表示
-      document.getElementById("node-version").textContent =
-        process.versions.node;
-      document.getElementById("electron-version").textContent =
-        process.versions.electron;
-
-      function showMessage() {
-        alert("こんにちは！Electronアプリが正常に動作しています！🎉");
-      }
-    </script>
-  </body>
 </html>
