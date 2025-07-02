@@ -48,6 +48,5 @@
     "eslint-config-prettier": "^9.0.0",
     "prettier": "^3.0.0"
   },
-  "author": "yunix-kyopro",
-  "license": "MIT"
+  "author": "yunix-kyopro"
 }
