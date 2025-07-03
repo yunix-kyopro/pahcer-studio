@@ -298,7 +298,6 @@ export class ExecutionService extends EventEmitter {
       timestamp: new Date().toISOString(),
       message,
     };
-    console.log(`[${level.toUpperCase()}] [${executionId}] ${message}`);
     this.emit('execution:log', { executionId, log: logMessage });
   }
 }

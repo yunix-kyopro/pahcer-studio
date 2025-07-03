@@ -3,8 +3,9 @@ node_modules/
 
 # Build output
 dist/
+out/
 
-# old frontend 
+# Old frontend 
 docs/src
 
 # Python cache
@@ -16,8 +17,54 @@ __pycache__/
 # 分析結果
 analysis_data/
 
-# data
+# Data
 data/
 
-# visualizer
+# Visualizer
 public/visualizer/
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+coverage/
+
+# nyc test coverage
+.nyc_output/
+
+# Electron package
+*.dmg
+*.exe
+*.deb
+*.rpm
+*.AppImage
+
+# Temporary files
+tmp/
+temp/

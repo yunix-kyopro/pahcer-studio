@@ -111,8 +111,6 @@ export class ConfigService {
 
       // 現在の設定を読み込む
       const currentConfig = await this.getConfig();
-      console.log('startSeed', startSeed);
-      console.log('testCaseCount', testCaseCount);
 
       // テスト設定を更新
       const updatedConfig = {
@@ -179,7 +177,6 @@ export class ConfigService {
       return result;
     } catch (error) {
       if ((error as { code?: string }).code === 'ENOENT') {
-        console.warn('best_scores.json not found, returning empty scores');
         return {};
       }
       console.error(`Error loading best scores: ${error}`);
