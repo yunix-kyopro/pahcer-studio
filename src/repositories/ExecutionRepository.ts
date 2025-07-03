@@ -155,7 +155,7 @@ export class ExecutionRepository implements IExecutionRepository {
     const caseIndex = summaryData.cases.findIndex((c: SummaryCaseRaw) => c.seed === seed);
     if (caseIndex === -1) return null;
 
-    const outputFileName = `${String(caseIndex).padStart(4, '0')}.txt`;
+    const outputFileName = `${String(seed).padStart(4, '0')}.txt`;
     const outputFilePath = path.join(this.getExecutionDirPath(id), 'case_outputs', outputFileName);
 
     try {
