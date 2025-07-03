@@ -219,7 +219,7 @@ const TestExecutionForm: React.FC = () => {
   };
 
   return (
-    <Container maxWidth="md" sx={{ py: 4, height: '100%' }}>
+    <Container maxWidth="md" sx={{ py: 4, height: '100%', overflow: 'auto' }}>
       <Paper elevation={2} sx={{ borderRadius: 2, overflow: 'hidden', mb: 4 }}>
         <Box sx={{ bgcolor: 'primary.main', color: 'white', py: 2.5, px: 4 }}>
           <Typography variant="h6">AtCoder Pahcer テスト実行</Typography>
