@@ -68,7 +68,6 @@ export class AnalysisService {
         for (const [fileKey, featureData] of Object.entries(data)) {
           this.inputFeaturesCache.set(fileKey, featureData as InputFeature);
         }
-        console.log(`入力特徴量キャッシュを読み込みました: ${this.inputFeaturesCache.size}件`);
       } catch (error) {
         console.error('入力特徴量キャッシュの読み込みに失敗しました:', error);
       }
@@ -81,7 +80,6 @@ export class AnalysisService {
         for (const [key, score] of Object.entries(data)) {
           this.bestScoresCache.set(key, score as number);
         }
-        console.log(`最高得点キャッシュを読み込みました: ${this.bestScoresCache.size}件`);
       } catch (error) {
         console.error('最高得点キャッシュの読み込みに失敗しました:', error);
       }
@@ -140,7 +138,7 @@ export class AnalysisService {
 
     try {
       fs.writeFileSync(this.settingsPath, JSON.stringify(settings, null, 2));
-      console.log('分析設定を保存しました:', settings);
+
       return settings;
     } catch (error) {
       console.error('設定ファイルの保存に失敗しました:', error);
@@ -153,7 +151,6 @@ export class AnalysisService {
     try {
       const featureData = Object.fromEntries(this.inputFeaturesCache);
       fs.writeFileSync(this.featureCachePath, JSON.stringify(featureData, null, 2));
-      console.log(`入力特徴量キャッシュを保存しました: ${this.inputFeaturesCache.size}件`);
     } catch (error) {
       console.error('入力特徴量キャッシュの保存に失敗しました:', error);
     }
@@ -261,11 +258,8 @@ export class AnalysisService {
    */
   async updateFeatureCache(featureFormat: string): Promise<UpdateAnalysisResponse> {
     try {
-      console.log(`特徴量キャッシュの更新を開始します。フォーマット: ${featureFormat}`);
-
       // 入力ディレクトリのテストケースファイルを検索
       const inputFiles = glob.sync(path.join(this.inputDir, '*.txt'));
-      console.log(`入力ファイルの検索が完了しました。ファイル数: ${inputFiles.length}`);
 
       // 特徴量を抽出して保存
       let featureCount = 0;
@@ -278,8 +272,6 @@ export class AnalysisService {
           featureCount++;
         }
       }
-
-      console.log(`特徴量の抽出が完了しました。処理ファイル数: ${featureCount}`);
 
       // 入力特徴量キャッシュの保存のみ実施
       this.saveFeatureCache();

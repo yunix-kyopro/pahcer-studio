@@ -178,7 +178,6 @@ export class ScoreAnalysisService {
     }
 
     const allExecutions = await executionRepository.findAll();
-    let updated = 0;
 
     for (const exe of allExecutions) {
       const summary = await this.readSummary(executionRepository.getSummaryPath(exe.id));
@@ -200,12 +199,8 @@ export class ScoreAnalysisService {
       if (Math.abs(newAvg - (exe.averageRelativeScore || 0)) > 0.001) {
         exe.averageRelativeScore = isNaN(newAvg) ? 0 : newAvg;
         await executionRepository.save(exe);
-        updated++;
       }
     }
-    console.log(
-      `Relative score recalculation completed. Updated ${updated} / ${allExecutions.length}.`,
-    );
   }
 
   /** ConfigService ラッパー: BestScores を外部公開 */

@@ -73,9 +73,6 @@ export class ProcessManager {
       try {
         const cmd = this.buildPacherCommand(request);
 
-        console.log(`[${executionId}] Executing command: ${cmd.join(' ')}`);
-        console.log(`[${executionId}] Working directory: ${this.projectRoot}`);
-
         const child = spawn(cmd[0], cmd.slice(1), {
           stdio: ['pipe', 'pipe', 'pipe'],
           cwd: this.projectRoot,
@@ -202,7 +199,6 @@ export class ProcessManager {
    * Pythonコード(_save_test_results)のロジックを再現
    */
   private async saveTestResults(executionId: string): Promise<void> {
-    console.log(`[${executionId}] Saving test results...`);
     const executionDir = path.join(this.resultsDir, executionId);
 
     // 1. 最新のサマリーJSONをコピー
@@ -210,7 +206,6 @@ export class ProcessManager {
     try {
       // コピー元のディレクトリが存在するか確認
       await fs.access(jsonDir);
-      console.log(`[${executionId}] Found source directory for summary: ${jsonDir}`);
 
       const jsonFiles = (await fs.readdir(jsonDir)).filter((f) => f.endsWith('.json'));
       if (jsonFiles.length > 0) {
@@ -228,9 +223,6 @@ export class ProcessManager {
         const srcPath = path.join(jsonDir, latestFile.file);
         const destPath = path.join(executionDir, 'summary.json');
         await fs.copyFile(srcPath, destPath);
-        console.log(`[${executionId}] Copied ${latestFile.file} to summary.json`);
-      } else {
-        console.warn(`[${executionId}] No .json files found in ${jsonDir}`);
       }
     } catch (error) {
       const err = error as NodeJS.ErrnoException;
@@ -258,16 +250,8 @@ export class ProcessManager {
           }
         }
       }
-      console.log(`[${executionId}] Copied case outputs.`);
-    } catch (error) {
-      const err = error as NodeJS.ErrnoException;
-      if (err?.code === 'ENOENT') {
-        console.warn(
-          `[${executionId}] Source directory for case outputs not found: ${outDir}. This may be normal.`,
-        );
-      } else {
-        console.warn(`[${executionId}] Could not save case outputs. Error:`, error);
-      }
+    } catch {
+      // tools/out not found is normal in some cases
     }
   }
 
@@ -286,18 +270,16 @@ export class ProcessManager {
       try {
         await fs.access(outBakDir);
         await fs.rm(outBakDir, { recursive: true, force: true });
-        console.log(`[${executionId}] Removed existing out_bak directory`);
-      } catch (error) {
+      } catch {
         // out_bak が存在しない場合は無視
       }
 
       // tools/out を tools/out_bak にリネーム
       await fs.rename(outDir, outBakDir);
-      console.log(`[${executionId}] Backed up tools/out to tools/out_bak`);
     } catch (error) {
       const err = error as NodeJS.ErrnoException;
       if (err?.code === 'ENOENT') {
-        console.log(`[${executionId}] tools/out does not exist, skipping backup`);
+        console.info(`[${executionId}] tools/out does not exist, skipping backup`);
       } else {
         console.error(`[${executionId}] Failed to backup out directory:`, error);
         throw error;
@@ -320,18 +302,17 @@ export class ProcessManager {
       try {
         await fs.access(outDir);
         await fs.rm(outDir, { recursive: true, force: true });
-        console.log(`[${executionId}] Removed tools/out for restoration`);
-      } catch (error) {
+      } catch {
         // tools/out が存在しない場合は無視
+        console.info(`[${executionId}] tools/out does not exist, skipping restoration`);
       }
 
       // tools/out_bak を tools/out にリネーム
       await fs.rename(outBakDir, outDir);
-      console.log(`[${executionId}] Restored tools/out_bak to tools/out`);
     } catch (error) {
       const err = error as NodeJS.ErrnoException;
       if (err?.code === 'ENOENT') {
-        console.log(`[${executionId}] tools/out_bak does not exist, skipping restoration`);
+        console.info(`[${executionId}] tools/out_bak does not exist, skipping restoration`);
       } else {
         console.error(`[${executionId}] Failed to restore out directory:`, error);
         throw error;
