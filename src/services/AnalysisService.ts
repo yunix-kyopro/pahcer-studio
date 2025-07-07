@@ -258,8 +258,8 @@ export class AnalysisService {
    */
   async updateFeatureCache(featureFormat: string): Promise<UpdateAnalysisResponse> {
     try {
-      // 入力ディレクトリのテストケースファイルを検索
-      const inputFiles = glob.sync(path.join(this.inputDir, '*.txt'));
+      // 入力ディレクトリのテストケースファイルを検索（クロスプラットフォーム対応）
+      const inputFiles = glob.sync('*.txt', { cwd: this.inputDir, absolute: true });
 
       // 特徴量を抽出して保存
       let featureCount = 0;
