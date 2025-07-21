@@ -10,6 +10,7 @@ import type {
 import AnalysisSettings from './AnalysisSettings';
 import ExecutionSelectionTable from './ExecutionSelectionTable';
 import AnalysisChart from './AnalysisChart';
+import ParameterAnalysisChart from './ParameterAnalysisChart';
 
 const ScoreAnalysis: React.FC = () => {
   // グローバル状態管理
@@ -255,11 +256,16 @@ const ScoreAnalysis: React.FC = () => {
 
       {/* 分析結果とグラフセクション */}
       {analysisResult && (
-        <AnalysisChart
-          analysisResult={analysisResult}
-          executions={executions}
-          selectedExecutionIds={selectedExecutionIds}
-        />
+        <>
+          <AnalysisChart
+            analysisResult={analysisResult}
+            executions={executions}
+            selectedExecutionIds={selectedExecutionIds}
+          />
+          <Box mt={3}>
+            <ParameterAnalysisChart analysisResult={analysisResult} />
+          </Box>
+        </>
       )}
     </Box>
   );
