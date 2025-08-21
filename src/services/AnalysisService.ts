@@ -32,12 +32,14 @@ export class AnalysisService {
   private settingsPath: string;
   private inputFeaturesCache: Map<string, InputFeature> = new Map();
   private bestScoresCache: Map<string, number> = new Map();
+  private configService: ConfigService;
 
-  constructor(baseDir?: string) {
+  constructor(configService: ConfigService, baseDir?: string) {
     this.baseDir = baseDir || process.cwd();
     this.inputDir = path.join(this.baseDir, '../tools', 'in');
     this.outputDir = path.join(this.baseDir, '.', 'data', 'results');
     this.dataDir = path.join(this.baseDir, 'analysis_data');
+    this.configService = configService;
 
     // 必要なディレクトリの作成
     if (!fs.existsSync(this.dataDir)) {
@@ -314,10 +316,9 @@ export class AnalysisService {
       }
 
       // ★ 相対スコア計算用にベストスコアと目的関数を取得
-      const configService = new ConfigService();
       const [bestScores, objective] = await Promise.all([
-        configService.getBestScores(),
-        configService.getObjective(),
+        this.configService.getBestScores(),
+        this.configService.getObjective(),
       ]);
 
       // 入力特徴量リストの作成
@@ -354,7 +355,7 @@ export class AnalysisService {
           // ★ 相対スコアを計算
           const best = bestScores[Number(seed)];
           if (best !== undefined && score >= 0) {
-            relativeScores[seed.toString()] = configService.calculateRelativeScore(
+            relativeScores[seed.toString()] = this.configService.calculateRelativeScore(
               score,
               best,
               objective,

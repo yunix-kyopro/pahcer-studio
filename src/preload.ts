@@ -83,6 +83,10 @@ const electronAPI: ElectronAPI = {
     downloadVisualizer: (url: string) => ipcRenderer.invoke('asset:downloadVisualizer', { url }),
     getVisualizerEntry: () => ipcRenderer.invoke('asset:getVisualizerEntry'),
   },
+  config: {
+    getSavePathList: () => ipcRenderer.invoke('config:getSavePathList'),
+    getActualFileList: () => ipcRenderer.invoke('config:getActualFileList'),
+  },
 };
 
 // `contextBridge`を使って、安全にAPIをレンダラープロセスに公開

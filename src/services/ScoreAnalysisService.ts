@@ -2,6 +2,7 @@ import type { TestExecution, TestCase } from '../schemas/execution';
 import { ConfigService } from './ConfigService';
 import type { SummaryJson, SummaryCaseRaw } from '../types/summary';
 import type { IExecutionRepository } from '../repositories/IExecutionRepository';
+import type { IFileSystemService } from './filesystem';
 
 /**
  * スコア分析専用のサービス
@@ -9,13 +10,15 @@ import type { IExecutionRepository } from '../repositories/IExecutionRepository'
  */
 export class ScoreAnalysisService {
   private configService: ConfigService;
+  private fileSystem: IFileSystemService;
 
   /**
    * コンストラクタ
    * ConfigService はファイル I/O を伴うため、ここで単一インスタンスを生成して再利用します。
    */
-  constructor() {
-    this.configService = new ConfigService();
+  constructor(configService: ConfigService, fileSystem: IFileSystemService) {
+    this.configService = configService;
+    this.fileSystem = fileSystem;
   }
 
   /**
@@ -43,9 +46,8 @@ export class ScoreAnalysisService {
    * 読み込み失敗時には null を返して上位にエラーを伝播させません。
    */
   private async readSummary(path: string): Promise<SummaryJson | null> {
-    const fs = await import('fs/promises');
     try {
-      const txt = await fs.readFile(path, 'utf8');
+      const txt = await this.fileSystem.readFile(path, 'utf-8');
       return JSON.parse(txt);
     } catch {
       return null;

@@ -11,6 +11,7 @@ import type { IExecutionRepository } from '../repositories/IExecutionRepository'
 import type { ProcessManager } from '../infrastructure/ProcessManager';
 import { ConfigService } from './ConfigService';
 import { ScoreAnalysisService } from './ScoreAnalysisService';
+import { FileHistoryService } from './FileHistoryService';
 
 /**
  * pacherツール実行のオーケストレーションを行うサービスクラス。
@@ -19,14 +20,19 @@ import { ScoreAnalysisService } from './ScoreAnalysisService';
 export class ExecutionService extends EventEmitter {
   private readonly configService: ConfigService;
   private readonly scoreAnalysisService: ScoreAnalysisService;
+  private readonly fileHistoryService: FileHistoryService;
 
   constructor(
     private readonly executionRepository: IExecutionRepository,
     private readonly processManager: ProcessManager,
+    configService: ConfigService,
+    scoreAnalysisService: ScoreAnalysisService,
+    fileHistoryService: FileHistoryService,
   ) {
     super();
-    this.configService = new ConfigService();
-    this.scoreAnalysisService = new ScoreAnalysisService();
+    this.configService = configService;
+    this.scoreAnalysisService = scoreAnalysisService;
+    this.fileHistoryService = fileHistoryService;
   }
 
   /**
@@ -56,6 +62,63 @@ export class ExecutionService extends EventEmitter {
           request.startSeed + request.testCaseCount
         }`,
       );
+    }
+
+    // ファイル履歴保存
+    this.emitLog(executionId, 'info', 'Saving file history...');
+    const savePathResult = await this.configService.getSavePathList();
+
+    if (!savePathResult.isConfigured) {
+      this.emitLog(
+        executionId,
+        'info',
+        'File history saving skipped: save_path_list not configured',
+      );
+    } else if (savePathResult.paths.length === 0) {
+      this.emitLog(executionId, 'info', 'File history saving skipped: save_path_list is empty');
+    } else {
+      const fileHistoryResult = await this.fileHistoryService.saveFileHistory(
+        executionId,
+        savePathResult.paths,
+      );
+
+      // ステータス別のログ出力
+      switch (fileHistoryResult.status) {
+        case 'SUCCESS':
+          this.emitLog(
+            executionId,
+            'info',
+            `File history saved successfully: ${fileHistoryResult.processedFiles} files, ${this.formatSize(fileHistoryResult.totalSize)}`,
+          );
+          if (fileHistoryResult.warnings.length > 0) {
+            fileHistoryResult.warnings.forEach((warning) =>
+              this.emitLog(executionId, 'warn', `File history warning: ${warning}`),
+            );
+          }
+          break;
+
+        case 'PARTIAL_SUCCESS':
+          this.emitLog(
+            executionId,
+            'warn',
+            `File history partially saved: ${fileHistoryResult.processedFiles}/${fileHistoryResult.totalFiles} files processed`,
+          );
+          fileHistoryResult.errors.forEach((error) =>
+            this.emitLog(executionId, 'warn', `File history error: ${error}`),
+          );
+          break;
+
+        default: // All FAILED_* statuses
+          this.emitLog(
+            executionId,
+            'error',
+            `File history saving failed (${fileHistoryResult.status}): continuing with test execution`,
+          );
+          fileHistoryResult.errors.forEach((error) =>
+            this.emitLog(executionId, 'error', `File history error: ${error}`),
+          );
+          break;
+      }
     }
 
     // リポジトリに初期状態を保存させる。
@@ -291,7 +354,7 @@ export class ExecutionService extends EventEmitter {
    */
   private emitLog(
     executionId: string,
-    level: 'debug' | 'info' | 'warn' | 'error',
+    _level: 'debug' | 'info' | 'warn' | 'error',
     message: string,
   ): void {
     const logMessage: LogMessage = {
@@ -299,5 +362,14 @@ export class ExecutionService extends EventEmitter {
       message,
     };
     this.emit('execution:log', { executionId, log: logMessage });
+  }
+
+  /**
+   * ファイルサイズのフォーマット
+   */
+  private formatSize(bytes: number): string {
+    if (bytes < 1024) return `${bytes}B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)}KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)}MB`;
   }
 }

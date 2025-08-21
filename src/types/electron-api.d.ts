@@ -44,6 +44,14 @@ export interface ElectronAPI {
     downloadVisualizer: (url: string) => Promise<DownloadVisualizerResponse>;
     getVisualizerEntry: () => Promise<VisualizerEntryResponse>;
   };
+  config: {
+    getSavePathList: () => Promise<{ paths: string[]; isConfigured: boolean }>;
+    getActualFileList: () => Promise<{
+      files: Array<{ path: string; isDirectory: boolean; size?: number }>;
+      isConfigured: boolean;
+      totalCount: number;
+    }>;
+  };
   getVersion: () => Promise<string>;
 }
 

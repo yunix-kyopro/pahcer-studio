@@ -25,6 +25,8 @@ import ErrorIcon from '@mui/icons-material/Error';
 import PendingIcon from '@mui/icons-material/Pending';
 import StopIcon from '@mui/icons-material/Stop';
 import type { TestExecution, TestExecutionRequest, LogMessage } from '../../../schemas/execution';
+import CopyTargetDisplay from './CopyTargetDisplay';
+import ConfigHelp from './ConfigHelp';
 
 const TestExecutionForm: React.FC = () => {
   // フォームの状態
@@ -219,12 +221,14 @@ const TestExecutionForm: React.FC = () => {
   };
 
   return (
-    <Container maxWidth="md" sx={{ py: 4, height: '100%', overflow: 'auto' }}>
-      <Paper elevation={2} sx={{ borderRadius: 2, overflow: 'hidden', mb: 4 }}>
-        <Box sx={{ bgcolor: 'primary.main', color: 'white', py: 2.5, px: 4 }}>
-          <Typography variant="h6">AtCoder Pahcer テスト実行</Typography>
+    <Container maxWidth="md" sx={{ py: 1, height: '100%', overflow: 'auto' }}>
+      <Paper elevation={2} sx={{ borderRadius: 2, overflow: 'hidden', mb: 1 }}>
+        <Box sx={{ bgcolor: 'primary.main', color: 'white', py: 1.5, px: 2.5 }}>
+          <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
+            AtCoder Pahcer テスト実行
+          </Typography>
         </Box>
-        <CardContent sx={{ p: 4 }}>
+        <CardContent sx={{ p: 2 }}>
           {!currentExecution ||
           currentExecution.status === 'COMPLETED' ||
           currentExecution.status === 'FAILED' ||
@@ -235,79 +239,108 @@ const TestExecutionForm: React.FC = () => {
                 label="コメント"
                 variant="outlined"
                 fullWidth
-                margin="normal"
+                size="small"
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}
                 placeholder="pahcer実行に関するコメントを入力してください"
-                sx={{ mb: 4 }}
+                sx={{ mb: 2 }}
               />
 
-              <Divider sx={{ my: 4 }} />
+              <Divider sx={{ my: 2 }} />
 
-              <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 'medium', mb: 2.5 }}>
-                テスト設定
-              </Typography>
+              {/* テスト設定とオプション設定を横並びに */}
+              <Box sx={{ display: 'flex', gap: 3, mb: 2 }}>
+                {/* 左側：テスト設定 */}
+                <Box sx={{ flex: 1 }}>
+                  <Typography
+                    variant="subtitle2"
+                    gutterBottom
+                    sx={{ fontWeight: 'medium', mb: 1.5 }}
+                  >
+                    テスト設定
+                  </Typography>
+                  <Box sx={{ display: 'flex', gap: 2, mb: 1.5 }}>
+                    <TextField
+                      label="テストケース数"
+                      variant="outlined"
+                      size="small"
+                      type="number"
+                      value={testCaseCount}
+                      onChange={(e) => setTestCaseCount(e.target.value)}
+                      slotProps={{ htmlInput: { min: 1, max: 1000 } }}
+                      sx={{ flex: 1 }}
+                    />
+                    <TextField
+                      label="開始シード"
+                      variant="outlined"
+                      size="small"
+                      type="number"
+                      value={startSeed}
+                      onChange={(e) => setStartSeed(e.target.value)}
+                      slotProps={{ htmlInput: { min: 0 } }}
+                      sx={{ flex: 1 }}
+                    />
+                  </Box>
+                </Box>
 
-              <Box sx={{ display: 'flex', flexDirection: 'row', gap: 3, mb: 4 }}>
-                <TextField
-                  label="テストケース数"
-                  variant="outlined"
-                  type="number"
-                  value={testCaseCount}
-                  onChange={(e) => setTestCaseCount(e.target.value)}
-                  InputProps={{ inputProps: { min: 1, max: 1000 } }}
-                  sx={{ width: '50%' }}
-                />
-                <TextField
-                  label="開始シード"
-                  variant="outlined"
-                  type="number"
-                  value={startSeed}
-                  onChange={(e) => setStartSeed(e.target.value)}
-                  InputProps={{ inputProps: { min: 0 } }}
-                  sx={{ width: '50%' }}
-                />
+                {/* 右側：オプション設定 */}
+                <Box sx={{ flex: 1 }}>
+                  <Typography
+                    variant="subtitle2"
+                    gutterBottom
+                    sx={{ fontWeight: 'medium', mb: 1.5 }}
+                  >
+                    オプション設定
+                  </Typography>
+                  <FormGroup>
+                    <FormControlLabel
+                      sx={{ mb: 0 }}
+                      control={
+                        <Checkbox
+                          checked={shuffle}
+                          onChange={(e) => setShuffle(e.target.checked)}
+                          color="primary"
+                          size="small"
+                        />
+                      }
+                      label={<Typography variant="body2">テストケースをシャッフルする</Typography>}
+                    />
+                    <FormControlLabel
+                      sx={{ mb: 0 }}
+                      control={
+                        <Checkbox
+                          checked={freezeBestScores}
+                          onChange={(e) => setFreezeBestScores(e.target.checked)}
+                          color="primary"
+                          size="small"
+                        />
+                      }
+                      label={<Typography variant="body2">ベストスコアを固定する</Typography>}
+                    />
+                  </FormGroup>
+                </Box>
               </Box>
 
-              <Divider sx={{ my: 4 }} />
+              {/* コピー対象ファイル/フォルダ表示とヘルプ */}
+              <Divider sx={{ my: 2 }} />
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                <Typography variant="subtitle2" sx={{ fontWeight: 'medium' }}>
+                  ファイル履歴
+                </Typography>
+                <ConfigHelp />
+              </Box>
 
-              <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 'medium', mb: 2.5 }}>
-                オプション設定
-              </Typography>
+              <CopyTargetDisplay />
 
-              <FormGroup sx={{ ml: 2, mb: 4 }}>
-                <FormControlLabel
-                  sx={{ mb: 1 }}
-                  control={
-                    <Checkbox
-                      checked={shuffle}
-                      onChange={(e) => setShuffle(e.target.checked)}
-                      color="primary"
-                    />
-                  }
-                  label="テストケースをシャッフルする"
-                />
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={freezeBestScores}
-                      onChange={(e) => setFreezeBestScores(e.target.checked)}
-                      color="primary"
-                    />
-                  }
-                  label="ベストスコアを固定する"
-                />
-              </FormGroup>
-
-              <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
+              <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 1.5 }}>
                 <Button
                   type="submit"
                   variant="contained"
                   color="primary"
-                  size="large"
+                  size="medium"
                   disabled={isSubmitting}
-                  startIcon={isSubmitting ? <CircularProgress size={20} /> : <PlayArrowIcon />}
-                  sx={{ px: 4, py: 1.5 }}
+                  startIcon={isSubmitting ? <CircularProgress size={18} /> : <PlayArrowIcon />}
+                  sx={{ px: 3, py: 1 }}
                 >
                   {isSubmitting ? '実行中...' : 'Pahcer実行開始'}
                 </Button>
