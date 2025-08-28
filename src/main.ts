@@ -134,6 +134,25 @@ ipcMain.handle('config:getActualFileList', async () => {
   return await configService.getActualFileList();
 });
 
+// Diff関連のIPCハンドラー
+ipcMain.handle(
+  'diff:getDiff',
+  async (event, { executionId1, executionId2 }: { executionId1: string; executionId2: string }) => {
+    const container = DIContainer.getInstance();
+    const fileDiffService = container.getFileDiffService();
+    return await fileDiffService.getDiff(executionId1, executionId2);
+  },
+);
+
+ipcMain.handle(
+  'diff:getDiffWithLatest',
+  async (event, { executionId }: { executionId: string }) => {
+    const container = DIContainer.getInstance();
+    const fileDiffService = container.getFileDiffService();
+    return await fileDiffService.getDiffWithLatest(executionId);
+  },
+);
+
 ipcMain.handle('asset:deleteVisualizer', async () => {
   const dir = path.join(__dirname, '../public/visualizer');
   try {

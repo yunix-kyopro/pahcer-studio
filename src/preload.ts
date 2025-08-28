@@ -87,6 +87,12 @@ const electronAPI: ElectronAPI = {
     getSavePathList: () => ipcRenderer.invoke('config:getSavePathList'),
     getActualFileList: () => ipcRenderer.invoke('config:getActualFileList'),
   },
+  diff: {
+    getDiff: (executionId1: string, executionId2: string) =>
+      ipcRenderer.invoke('diff:getDiff', { executionId1, executionId2 }),
+    getDiffWithLatest: (executionId: string) =>
+      ipcRenderer.invoke('diff:getDiffWithLatest', { executionId }),
+  },
 };
 
 // `contextBridge`を使って、安全にAPIをレンダラープロセスに公開

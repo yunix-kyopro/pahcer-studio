@@ -14,6 +14,7 @@ import './styles/App.css';
 import TestExecutionForm from './components/TestExecutionForm';
 import TestExecutionList from './components/TestExecutionList';
 import ScoreAnalysis from './components/ScoreAnalysis';
+import FileDiff from './components/FileDiff';
 
 // タブパネルのインターフェース
 interface TabPanelProps {
@@ -131,6 +132,7 @@ function App() {
               <Tab label="テスト実行" sx={{ borderTopLeftRadius: '4px' }} />
               <Tab label="テスト履歴" />
               <Tab label="スコア分析" />
+              <Tab label="ファイル差分" />
             </Tabs>
           </Box>
         </AppBar>
@@ -146,6 +148,10 @@ function App() {
 
           <TabPanel value={tabIndex} index={2}>
             <ScoreAnalysis />
+          </TabPanel>
+
+          <TabPanel value={tabIndex} index={3}>
+            <FileDiff />
           </TabPanel>
         </Box>
       </Box>

@@ -15,6 +15,7 @@ import type {
 } from '../schemas/analysis';
 import type { DownloadVisualizerResponse, VisualizerEntryResponse } from '../schemas/asset';
 import type { SimpleSuccessResponse, IdResponse } from '../schemas/execution';
+import type { DiffResult } from '../services/DiffCalculationService';
 
 // ElectronAPI に共通で使用するインターフェース
 export interface ElectronAPI {
@@ -51,6 +52,10 @@ export interface ElectronAPI {
       isConfigured: boolean;
       totalCount: number;
     }>;
+  };
+  diff: {
+    getDiff: (executionId1: string, executionId2: string) => Promise<DiffResult>;
+    getDiffWithLatest: (executionId: string) => Promise<DiffResult>;
   };
   getVersion: () => Promise<string>;
 }

@@ -8,6 +8,9 @@ import {
 } from '../services/filesystem';
 import { ConfigService } from '../services/ConfigService';
 import { FileHistoryService } from '../services/FileHistoryService';
+import { FileDataService } from '../services/FileDataService';
+import { DiffCalculationService } from '../services/DiffCalculationService';
+import { FileDiffService } from '../services/FileDiffService';
 import { ScoreAnalysisService } from '../services/ScoreAnalysisService';
 import { ExecutionService } from '../services/ExecutionService';
 
@@ -42,6 +45,18 @@ export class DIContainer {
     // FileHistoryServiceの設定
     const fileHistoryService = new FileHistoryService(fileSystemService);
     this.dependencies.set('FileHistoryService', fileHistoryService);
+
+    // FileDataServiceの設定
+    const fileDataService = new FileDataService(fileSystemService, configService);
+    this.dependencies.set('FileDataService', fileDataService);
+
+    // DiffCalculationServiceの設定
+    const diffCalculationService = new DiffCalculationService();
+    this.dependencies.set('DiffCalculationService', diffCalculationService);
+
+    // FileDiffServiceの設定
+    const fileDiffService = new FileDiffService(fileDataService, diffCalculationService);
+    this.dependencies.set('FileDiffService', fileDiffService);
 
     // ScoreAnalysisServiceの設定
     const scoreAnalysisService = new ScoreAnalysisService(configService, fileSystemService);
@@ -91,6 +106,18 @@ export class DIContainer {
     return this.get<FileHistoryService>('FileHistoryService');
   }
 
+  public getFileDataService(): FileDataService {
+    return this.get<FileDataService>('FileDataService');
+  }
+
+  public getDiffCalculationService(): DiffCalculationService {
+    return this.get<DiffCalculationService>('DiffCalculationService');
+  }
+
+  public getFileDiffService(): FileDiffService {
+    return this.get<FileDiffService>('FileDiffService');
+  }
+
   public getScoreAnalysisService(): ScoreAnalysisService {
     return this.get<ScoreAnalysisService>('ScoreAnalysisService');
   }
@@ -132,6 +159,23 @@ export class DIContainer {
       '/mock/pahcer-studio/data/file_history', // dataDir
     );
     container.dependencies.set('FileHistoryService', fileHistoryService);
+
+    // FileDataServiceの設定（モック使用）
+    const fileDataService = new FileDataService(
+      mockFileSystemService,
+      configService,
+      '/mock', // projectRoot
+      '/mock/pahcer-studio/data', // studioDataDir
+    );
+    container.dependencies.set('FileDataService', fileDataService);
+
+    // DiffCalculationServiceの設定（テスト用）
+    const diffCalculationService = new DiffCalculationService();
+    container.dependencies.set('DiffCalculationService', diffCalculationService);
+
+    // FileDiffServiceの設定（テスト用）
+    const fileDiffService = new FileDiffService(fileDataService, diffCalculationService);
+    container.dependencies.set('FileDiffService', fileDiffService);
 
     // ScoreAnalysisServiceの設定（モック使用）
     const scoreAnalysisService = new ScoreAnalysisService(configService, mockFileSystemService);
