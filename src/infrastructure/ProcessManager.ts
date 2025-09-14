@@ -1,6 +1,9 @@
 import { spawn, type ChildProcess } from 'child_process';
+import { z } from 'zod';
 import * as fs from 'fs/promises';
+import { readFileSync } from 'fs';
 import * as path from 'path';
+import * as toml from 'toml';
 import type { TestExecutionRequest } from '../schemas/execution';
 
 export interface PacherExecutionResult {
@@ -12,6 +15,18 @@ export interface PacherExecutionResult {
   errorMessage?: string;
 }
 
+const ToolsDirSchema = z
+  .string()
+  .refine((path) => path.startsWith('./'), { message: "Path must start with './' prefix" })
+  .refine((path) => path.endsWith('/{SEED04}.txt'), {
+    message: "Path must end with '/out/{SEED04}.txt' suffix",
+  })
+  .transform((path) => {
+    const withoutPrefix = path.slice(2);
+    const corePath = withoutPrefix.slice(0, -17);
+    return corePath;
+  });
+
 /**
  * pacherツール実行と、それに伴うファイル操作を管理するクラス
  */
@@ -19,11 +34,17 @@ export class ProcessManager {
   private activeProcesses: Map<string, ChildProcess> = new Map();
   private projectRoot: string;
   private resultsDir: string;
+  private toolsDir: string;
 
   constructor() {
     // pacher_electron/がプロジェクトルートの1階層下にある前提
     this.projectRoot = path.resolve(process.cwd(), '..');
     this.resultsDir = path.join(process.cwd(), 'data', 'results');
+    const pahcerConfig = toml.parse(
+      readFileSync(path.join(this.projectRoot, 'pahcer_config.toml'), 'utf8'),
+    );
+    const toolsDir = ToolsDirSchema.parse(pahcerConfig.test.test_steps[0].stdout);
+    this.toolsDir = path.join(this.projectRoot, toolsDir);
   }
 
   /**
@@ -234,7 +255,7 @@ export class ProcessManager {
     }
 
     // 2. ケースごとの出力ファイルをコピー
-    const outDir = path.join(this.projectRoot, 'tools', 'out');
+    const outDir = path.join(this.toolsDir, 'out');
     const caseOutputsDir = path.join(executionDir, 'case_outputs');
     try {
       await fs.mkdir(caseOutputsDir, { recursive: true });
@@ -259,8 +280,8 @@ export class ProcessManager {
    * tools/out が存在する場合、tools/out_bak にバックアップする
    */
   private async backupOutDirectory(executionId: string): Promise<void> {
-    const outDir = path.join(this.projectRoot, 'tools', 'out');
-    const outBakDir = path.join(this.projectRoot, 'tools', 'out_bak');
+    const outDir = path.join(this.toolsDir, 'out');
+    const outBakDir = path.join(this.toolsDir, 'out_bak');
 
     try {
       // tools/out が存在するかチェック
@@ -291,8 +312,8 @@ export class ProcessManager {
    * tools/out_bak が存在する場合、tools/out を削除してから tools/out_bak を tools/out に復元する
    */
   private async restoreOutDirectory(executionId: string): Promise<void> {
-    const outDir = path.join(this.projectRoot, 'tools', 'out');
-    const outBakDir = path.join(this.projectRoot, 'tools', 'out_bak');
+    const outDir = path.join(this.toolsDir, 'out');
+    const outBakDir = path.join(this.toolsDir, 'out_bak');
 
     try {
       // tools/out_bak が存在するかチェック
