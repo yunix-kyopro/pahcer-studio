@@ -1,4 +1,3 @@
-import * as fs from 'fs/promises';
 import * as path from 'path';
 import {
   type TestExecution,
@@ -7,8 +6,9 @@ import {
   type TestCase,
 } from '../schemas/execution';
 import type { IExecutionRepository } from './IExecutionRepository';
-import { ScoreAnalysisService } from '../services/ScoreAnalysisService';
+import type { ScoreAnalysisService } from '../services/ScoreAnalysisService';
 import type { SummaryJson, SummaryCaseRaw } from '../types/summary';
+import type { IFileSystemService } from '../services/filesystem/IFileSystemService';
 
 /**
  * ファイルシステムベースのExecutionRepository実装。
@@ -16,22 +16,23 @@ import type { SummaryJson, SummaryCaseRaw } from '../types/summary';
  */
 export class ExecutionRepository implements IExecutionRepository {
   private resultsDirectory: string;
-  private scoreAnalysisService: ScoreAnalysisService;
 
-  constructor() {
+  constructor(
+    private readonly scoreAnalysisService: ScoreAnalysisService,
+    private readonly fileSystem: IFileSystemService,
+  ) {
     // process.cwd() は electron の app.getAppPath() に相当し、
     // 開発時は pacher_electron/、パッケージ後は resources/app/
     // そこから一階層上の pacher_proj/data/results を指すようにする
     this.resultsDirectory = path.resolve(process.cwd(), '.', 'data', 'results');
-    this.scoreAnalysisService = new ScoreAnalysisService();
     this.ensureDirectory();
   }
 
   private ensureDirectory(): void {
     // ディレクトリの作成に失敗しても初期化段階では致命的でないため、ログのみに留める
-    fs.mkdir(this.resultsDirectory, { recursive: true }).catch((err) =>
-      console.error('Failed to create results directory:', err),
-    );
+    this.fileSystem
+      .mkdir(this.resultsDirectory, { recursive: true })
+      .catch((err) => console.error('Failed to create results directory:', err));
   }
 
   private getExecutionDirPath(id: string): string {
@@ -52,7 +53,7 @@ export class ExecutionRepository implements IExecutionRepository {
    */
   private async readJsonFile<T>(filePath: string): Promise<T | null> {
     try {
-      const content = await fs.readFile(filePath, 'utf8');
+      const content = await this.fileSystem.readFile(filePath, 'utf8');
       return JSON.parse(content) as T;
     } catch (err: unknown) {
       if ((err as NodeJS.ErrnoException)?.code === 'ENOENT') return null;
@@ -63,7 +64,7 @@ export class ExecutionRepository implements IExecutionRepository {
   /** ファイル/ディレクトリの存在確認 */
   private async exists(targetPath: string): Promise<boolean> {
     try {
-      await fs.access(targetPath);
+      await this.fileSystem.access(targetPath);
       return true;
     } catch {
       return false;
@@ -75,7 +76,7 @@ export class ExecutionRepository implements IExecutionRepository {
    */
   async save(execution: TestExecution): Promise<void> {
     const executionDir = this.getExecutionDirPath(execution.id);
-    await fs.mkdir(executionDir, { recursive: true });
+    await this.fileSystem.mkdir(executionDir, { recursive: true });
 
     const filePath = this.getExecutionInfoPath(execution.id);
     const validated = TestExecutionSchema.safeParse(execution);
@@ -83,7 +84,7 @@ export class ExecutionRepository implements IExecutionRepository {
       throw new Error(`Invalid execution object supplied for id ${execution.id}`);
     }
 
-    await fs.writeFile(filePath, JSON.stringify(validated.data, null, 2), 'utf8');
+    await this.fileSystem.writeFile(filePath, JSON.stringify(validated.data, null, 2), 'utf8');
   }
 
   /**
@@ -159,7 +160,7 @@ export class ExecutionRepository implements IExecutionRepository {
     const outputFilePath = path.join(this.getExecutionDirPath(id), 'case_outputs', outputFileName);
 
     try {
-      return await fs.readFile(outputFilePath, 'utf8');
+      return await this.fileSystem.readFile(outputFilePath, 'utf8');
     } catch (err: unknown) {
       if ((err as NodeJS.ErrnoException)?.code === 'ENOENT') return null;
       throw err;
@@ -171,14 +172,14 @@ export class ExecutionRepository implements IExecutionRepository {
    */
   async findAll(): Promise<TestExecution[]> {
     try {
-      const executionDirs = await fs.readdir(this.resultsDirectory, {
-        withFileTypes: true,
-      });
+      const executionDirs = await this.fileSystem.readdir(this.resultsDirectory);
       const executions: TestExecution[] = [];
 
-      for (const dirent of executionDirs) {
-        if (dirent.isDirectory()) {
-          const id = dirent.name;
+      for (const name of executionDirs) {
+        const dirPath = path.join(this.resultsDirectory, name);
+        const stats = await this.fileSystem.stat(dirPath);
+        if (stats.isDirectory()) {
+          const id = name;
           try {
             const execution = await this.findById(id);
             if (execution) {
@@ -248,7 +249,7 @@ export class ExecutionRepository implements IExecutionRepository {
   async delete(id: string): Promise<void> {
     try {
       const executionDir = this.getExecutionDirPath(id);
-      await fs.rm(executionDir, { recursive: true, force: true });
+      await this.fileSystem.rm(executionDir, { recursive: true, force: true });
     } catch (error) {
       throw new Error(`Failed to delete execution directory ${id}: ${error}`);
     }

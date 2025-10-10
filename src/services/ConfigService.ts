@@ -1,6 +1,6 @@
-import * as fs from 'fs/promises';
 import * as path from 'path';
 import { parse, stringify } from 'smol-toml';
+import type { IFileSystemService } from './filesystem/IFileSystemService';
 
 export interface PahcerConfig {
   general?: {
@@ -30,7 +30,7 @@ export class ConfigService {
   private readonly backupPath: string;
   private readonly bestScoresPath: string;
 
-  constructor() {
+  constructor(private readonly fileSystem: IFileSystemService) {
     // pacher_electron/がプロジェクトルートの1階層下にある前提
     const projectRoot = path.resolve(process.cwd(), '..');
     this.configPath = path.join(projectRoot, 'pahcer_config.toml');
@@ -43,7 +43,7 @@ export class ConfigService {
    */
   async getConfig(): Promise<PahcerConfig> {
     try {
-      const content = await fs.readFile(this.configPath, 'utf-8');
+      const content = await this.fileSystem.readFile(this.configPath, 'utf-8');
       return parse(content) as PahcerConfig;
     } catch (error) {
       console.error(`Error loading config: ${error}`);
@@ -52,33 +52,11 @@ export class ConfigService {
   }
 
   /**
-   * pahcer_config.tomlの設定を更新
-   */
-  async updateConfig(config: PahcerConfig): Promise<PahcerConfig> {
-    try {
-      // 現在の設定を読み込む
-      const currentConfig = await this.getConfig();
-
-      // 設定をマージ
-      const updatedConfig = this.mergeConfig(currentConfig, config);
-
-      // smol-tomlのstringifyを使用してTOML文字列を生成
-      const tomlContent = stringify(updatedConfig);
-      await fs.writeFile(this.configPath, tomlContent, 'utf-8');
-
-      return await this.getConfig();
-    } catch (error) {
-      console.error(`Error updating config: ${error}`);
-      return config;
-    }
-  }
-
-  /**
    * pahcer_config.tomlをバックアップ
    */
   async backupConfig(): Promise<boolean> {
     try {
-      await fs.copyFile(this.configPath, this.backupPath);
+      await this.fileSystem.copyFile(this.configPath, this.backupPath);
       return true;
     } catch (error) {
       console.error(`Error backing up config: ${error}`);
@@ -91,8 +69,8 @@ export class ConfigService {
    */
   async restoreConfig(): Promise<boolean> {
     try {
-      await fs.access(this.backupPath);
-      await fs.copyFile(this.backupPath, this.configPath);
+      await this.fileSystem.access(this.backupPath);
+      await this.fileSystem.copyFile(this.backupPath, this.configPath);
       return true;
     } catch (error) {
       console.error(`Error restoring config: ${error}`);
@@ -124,7 +102,7 @@ export class ConfigService {
 
       // smol-tomlのstringifyを使用してTOML文字列を生成
       const tomlContent = stringify(updatedConfig);
-      await fs.writeFile(this.configPath, tomlContent, 'utf-8');
+      await this.fileSystem.writeFile(this.configPath, tomlContent, 'utf-8');
 
       return true;
     } catch (error) {
@@ -162,7 +140,7 @@ export class ConfigService {
    */
   async getBestScores(): Promise<Record<number, number>> {
     try {
-      const content = await fs.readFile(this.bestScoresPath, 'utf-8');
+      const content = await this.fileSystem.readFile(this.bestScoresPath, 'utf-8');
       const bestScores = JSON.parse(content);
 
       // JSONのキーは文字列なので、数値に変換

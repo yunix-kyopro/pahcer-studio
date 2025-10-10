@@ -9,24 +9,21 @@ import type {
 } from '../schemas/execution';
 import type { IExecutionRepository } from '../repositories/IExecutionRepository';
 import type { ProcessManager } from '../infrastructure/ProcessManager';
-import { ConfigService } from './ConfigService';
-import { ScoreAnalysisService } from './ScoreAnalysisService';
+import type { ConfigService } from './ConfigService';
+import type { ScoreAnalysisService } from './ScoreAnalysisService';
 
 /**
  * pacherツール実行のオーケストレーションを行うサービスクラス。
  * PythonのPahcerServiceのロジックを参考に、関心事を分離した形で実装。
  */
 export class ExecutionService extends EventEmitter {
-  private readonly configService: ConfigService;
-  private readonly scoreAnalysisService: ScoreAnalysisService;
-
   constructor(
     private readonly executionRepository: IExecutionRepository,
     private readonly processManager: ProcessManager,
+    private readonly configService: ConfigService,
+    private readonly scoreAnalysisService: ScoreAnalysisService,
   ) {
     super();
-    this.configService = new ConfigService();
-    this.scoreAnalysisService = new ScoreAnalysisService();
   }
 
   /**

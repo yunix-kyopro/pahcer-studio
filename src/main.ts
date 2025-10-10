@@ -38,11 +38,9 @@ function createWindow(): void {
 function setupExecutionService(): void {
   // DIContainerから依存関係を取得
   const container = DIContainer.getInstance();
-  const executionRepository = container.getExecutionRepository();
-  const processManager = container.getProcessManager();
 
-  // ExecutionServiceを依存性注入で構築
-  executionService = new ExecutionService(executionRepository, processManager);
+  // ExecutionServiceをDIContainerから取得
+  executionService = container.getExecutionService();
 
   // ExecutionServiceのイベントをレンダラープロセスに転送
   executionService.on('execution:status', (data) => {
@@ -63,8 +61,11 @@ function setupExecutionService(): void {
 }
 
 function setupAnalysisService(): void {
-  // AnalysisServiceを初期化
-  analysisService = new AnalysisService();
+  // DIContainerから依存関係を取得
+  const container = DIContainer.getInstance();
+
+  // AnalysisServiceをDIContainerから取得
+  analysisService = container.getAnalysisService();
 }
 
 ipcMain.handle('execution:start', async (event, request: TestExecutionRequest) => {

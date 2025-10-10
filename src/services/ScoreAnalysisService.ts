@@ -1,22 +1,22 @@
 import type { TestExecution, TestCase } from '../schemas/execution';
-import { ConfigService } from './ConfigService';
+import type { ConfigService } from './ConfigService';
 import type { SummaryJson, SummaryCaseRaw } from '../types/summary';
 import type { IExecutionRepository } from '../repositories/IExecutionRepository';
+import type { IFileSystemService } from './filesystem/IFileSystemService';
 
 /**
  * スコア分析専用のサービス
  * 相対スコア計算やその他の分析ロジックを担当
  */
 export class ScoreAnalysisService {
-  private configService: ConfigService;
-
   /**
    * コンストラクタ
-   * ConfigService はファイル I/O を伴うため、ここで単一インスタンスを生成して再利用します。
+   * ConfigService と IFileSystemService を依存性注入で受け取ります。
    */
-  constructor() {
-    this.configService = new ConfigService();
-  }
+  constructor(
+    private readonly configService: ConfigService,
+    private readonly fileSystem: IFileSystemService,
+  ) {}
 
   /**
    * BestScores と Objective を並列取得する内部ヘルパー
@@ -43,9 +43,8 @@ export class ScoreAnalysisService {
    * 読み込み失敗時には null を返して上位にエラーを伝播させません。
    */
   private async readSummary(path: string): Promise<SummaryJson | null> {
-    const fs = await import('fs/promises');
     try {
-      const txt = await fs.readFile(path, 'utf8');
+      const txt = await this.fileSystem.readFile(path, 'utf8');
       return JSON.parse(txt);
     } catch {
       return null;
